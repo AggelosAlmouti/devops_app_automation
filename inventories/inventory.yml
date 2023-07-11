@@ -1,0 +1,14 @@
+---
+
+all:
+  children:
+    docker:
+      hosts:
+        t1:
+          ansible_host: localhost
+    vagrant:
+      hosts:
+        t2:
+          ansible_host: localhost
+
+...

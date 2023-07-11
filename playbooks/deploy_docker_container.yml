@@ -1,0 +1,45 @@
+---
+
+- hosts: localhost
+  gather_facts: true
+  tasks:
+
+    - name: Retrieve zipped Docker image tarball from GH
+      get_url:
+        url: https://github.com/AggelosAlmouti/devops_vehicle_registry/raw/master/docker_image/devopsapp.zip
+        dest: /tmp/devopsapp.zip
+        tmp_dest: /tmp/
+        mode: '0640'
+      run_once: true
+      delegate_to: localhost
+
+    - name: Copy Docker image tarball to host(s)
+      unarchive:
+        copy: true
+        src: /tmp/devopsapp.zip
+        dest: /tmp/
+        mode: '0440'
+
+    - name: Load image from tarball 
+      docker_image:
+        name: devopsapp
+        tag: latest
+        load_path: /tmp/devopsapp.zip
+        source: load
+
+    - name: Create Docker volume to persist the DB
+      docker_volume:
+        name: devopsapp-db
+        state: present
+
+    - name: Ensure Docker container running image is present
+      docker_container:
+        name: devopsapp_container
+        state: started
+        image: devopsapp:latest
+        ports:
+          - '80:80'
+        volumes:
+          devopsapp-db:/app/instance
+
+...
